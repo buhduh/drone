@@ -39,6 +39,7 @@ const size_t Vulkan::MAX_FRAMES_IN_FLIGHT(2);
 
 Vulkan::Vulkan(GLFWwindow* window) 
 	: extensions(0) 
+	, frameBufferResized(false)
 	, validationLayers(0)
 	, instance(VK_NULL_HANDLE)
 	, window(window)
@@ -92,7 +93,62 @@ Vulkan::Vulkan(GLFWwindow* window)
 	createSyncObjects();
 }
 
-Vulkan::~Vulkan() {}
+Vulkan::~Vulkan() {
+	cleanupSwapChain();
+	vkDestroyDescriptorSetLayout(device, descriptorSetLayout, nullptr);
+	vkDestroyBuffer(device, indexBuffer, nullptr);
+	vkFreeMemory(device, indexBufferMemory, nullptr);
+	vkDestroyBuffer(device, vertexBuffer, nullptr);
+	vkFreeMemory(device, vertexBufferMemory, nullptr);
+	for(size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; ++i) {
+		vkDestroySemaphore(device, renderFinishedSemaphores[i], nullptr);
+		vkDestroySemaphore(device, imageAvailableSemaphores[i], nullptr);
+		vkDestroyFence(device, inFlightFences[i], nullptr);
+	}
+	vkDestroyCommandPool(device, commandPool, nullptr);
+	vkDestroyDevice(device, nullptr);
+	vkDestroySurfaceKHR(instance, surface, nullptr);
+	vkDestroyInstance(instance, nullptr);
+}
+
+void Vulkan::waitIdle() {
+	vkDeviceWaitIdle(device);
+}
+
+void Vulkan::cleanupSwapChain() {
+	for(auto framebuffer : swapChainFramebuffers) {
+		vkDestroyFramebuffer(device, framebuffer, nullptr);
+    }
+	vkFreeCommandBuffers(
+		device, commandPool, 
+		static_cast<uint32_t>(commandBuffers.size()), commandBuffers.data()
+	);
+	vkDestroyPipeline(device, graphicsPipeline, nullptr);
+	vkDestroyPipelineLayout(device, pipelineLayout, nullptr);
+	vkDestroyRenderPass(device, renderPass, nullptr);
+	for(auto i : swapChainImageViews) {
+		vkDestroyImageView(device, i, nullptr);
+	}
+	vkDestroySwapchainKHR(device, swapChain, nullptr);
+	for(size_t i = 0; i < swapChainImages.size(); ++i) {
+		vkDestroyBuffer(device, uniformBuffers[i], nullptr);
+		vkFreeMemory(device, uniformBuffersMemory[i], nullptr);
+	}
+	vkDestroyDescriptorPool(device, descriptorPool, nullptr);
+}
+
+void Vulkan::recreateSwapChain() {
+	vkDeviceWaitIdle(device);
+	cleanupSwapChain();
+	createSwapChain();
+	createImageViews();
+	createRenderPass();
+	createGraphicsPipeline();
+	createFramebuffers();
+	createUniformBuffers();
+	createDescriptorPool();
+	createCommandBuffers();
+}
 
 void Vulkan::updateUniformBuffer(uint32_t currentImage) {
 	static auto startTime = std::chrono::high_resolution_clock::now();
@@ -137,13 +193,13 @@ void Vulkan::drawFrame() {
 	);
 	//TODO This is ALWAYS suboptimal, i should probably fix this
 	//TODO need to handle resizing
-	/*
 	if(res == VK_ERROR_OUT_OF_DATE_KHR) {
 		//TODO should I print something?
 		recreateSwapChain();
 		return;
 	}
-	*/
+	//TODO fix this???
+	//if(res != VK_SUCCESS && res != VK_SUBOPTIMAL_KHR) {
 	if(res != VK_SUCCESS) {
 		throw std::runtime_error("Failed acquiring next swap chain image.");
 	}
@@ -184,16 +240,10 @@ void Vulkan::drawFrame() {
 	presentInfo.pResults = nullptr; // Optional
 
 	res = vkQueuePresentKHR(presentQueue, &presentInfo);
-	/*
-	//TODO gonna have to handle resizes
 	if(res == VK_ERROR_OUT_OF_DATE_KHR || res == VK_SUBOPTIMAL_KHR || frameBufferResized) {
 		frameBufferResized = false;
 		recreateSwapChain();
 	} else if(res != VK_SUCCESS) { 
-		throw std::runtime_error("Failed to present swap chain.");
-	}
-	*/
-	if(res != VK_SUCCESS) { 
 		throw std::runtime_error("Failed to present swap chain.");
 	}
 	vkQueueWaitIdle(presentQueue);

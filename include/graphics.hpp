@@ -21,6 +21,7 @@ class Vulkan : utils::Uncopyable {
 	Vulkan(GLFWwindow*);
 	~Vulkan();
 	void drawFrame();
+	void waitIdle();
 	private:
 	//static
 	const static bool debug;
@@ -30,6 +31,7 @@ class Vulkan : utils::Uncopyable {
 	const static size_t MAX_FRAMES_IN_FLIGHT;
 
 	//members
+	bool frameBufferResized;
 	std::vector<const char*> extensions;
 	std::vector<const char*> validationLayers;
 	VkInstance instance;
@@ -74,6 +76,7 @@ class Vulkan : utils::Uncopyable {
 		const VkDebugUtilsMessengerCallbackDataEXT*,
 		void*
 	);
+	void cleanupSwapChain();
 	void setExtensions();
 	void setValidationLayers();
 	void createInstance();
@@ -114,6 +117,7 @@ class Vulkan : utils::Uncopyable {
 	void createCommandBuffers();
 	void createSyncObjects();
 	void updateUniformBuffer(uint32_t);
+	void recreateSwapChain();
 };
 
 struct SwapChainSupportDetails {
