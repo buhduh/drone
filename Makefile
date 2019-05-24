@@ -9,6 +9,11 @@ OBJ = $(patsubst src/%.cpp,build/%.o,$(SRC))
 
 EXE = bin/drone
 
+MODELPARSER_SRC = $(wildcard src/modelparser/*.cpp)
+MODELPARSER_OBJ = $(patsubst src/modelparser/%.cpp,build/modelparser/%.o,$(MODELPARSER_SRC))
+MODELPARSER_LIB = lib/modelparser
+MODELPARSER_BLD = build/modelparser
+
 drone: $(EXE)
 
 $(EXE): $(OBJ)
@@ -28,6 +33,17 @@ tags: $(SRC)
 	sed -e 's/[\\ ]/\n/g' | \
 	sed -e '/^$$/d' -e '/\.o:[ \t]*$$/d' | \
 	ctags -L - --c++-kinds=+p --fields=+iaS --extra=+q
+
+modelparser: $(MODELPARSER_BLD) $(MODELPARSER_LIB)
+
+$(MODELPARSER_BLD):
+	@mkdir build/modelparser
+
+$(MODELPARSER_LIB): $(MODELPARSER_OBJ)
+	g++ -g $(CFLAGS) -o $@ $^ $(LDFLAGS)
+	
+$(MODELPARSER_OBJ): build/modelparser/%.o: src/modelparser/%.cpp
+	g++ -g $(CFLAGS) -o $@ -c $^ $(LDFLAGS)
 
 clean:
 	rm -rf build/* bin/*
