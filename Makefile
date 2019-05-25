@@ -1,3 +1,5 @@
+#TODO I should probably fix the debugging flags...
+
 CFLAGS = -std=c++17 -I$(VULKAN_SDK_PATH)/include -Iinclude -I$(HOME)/include -DDEBUG
 LDFLAGS = -L$(VULKAN_SDK_PATH)/lib `pkg-config --static --libs glfw3` -lvulkan
 
@@ -11,7 +13,7 @@ EXE = bin/drone
 
 MODELPARSER_SRC = $(wildcard src/modelparser/*.cpp)
 MODELPARSER_OBJ = $(patsubst src/modelparser/%.cpp,build/modelparser/%.o,$(MODELPARSER_SRC))
-MODELPARSER_LIB = lib/modelparser
+MODELPARSER_LIB = lib/libModelparser.so
 MODELPARSER_BLD = build/modelparser
 
 drone: $(EXE)
@@ -40,10 +42,10 @@ $(MODELPARSER_BLD):
 	@mkdir build/modelparser
 
 $(MODELPARSER_LIB): $(MODELPARSER_OBJ)
-	g++ -g $(CFLAGS) -o $@ $^ $(LDFLAGS)
+	g++ -g $(CFLAGS) -shared -pie -o $@ $^ $(LDFLAGS)
 	
 $(MODELPARSER_OBJ): build/modelparser/%.o: src/modelparser/%.cpp
-	g++ -g $(CFLAGS) -o $@ -c $^ $(LDFLAGS)
+	g++ -g $(CFLAGS) -o $@ -c -fPIC $^ $(LDFLAGS)
 
 clean:
 	rm -rf build/* bin/*
