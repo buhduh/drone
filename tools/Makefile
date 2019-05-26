@@ -3,20 +3,20 @@
 
 CFLAGS = -std=c++17 -Iinclude -I../include -I$(HOME)/include
 
-MODELPARSER_BIN = bin/modelparser
-MODELPARSER_BLD = build/modelparser
-MODELPARSER_SRC = $(wildcard src/modelparser/*.cpp)
-MODELPARSER_OBJ = $(patsubst src/modelparser/%.cpp,build/modelparser/%.o,$(MODELPARSER_SRC))
+WAVEFRONTPARSER_BIN = bin/wavefrontparser
+WAVEFRONTPARSER_BLD = build/wavefrontparser
+WAVEFRONTPARSER_SRC = $(wildcard src/wavefrontparser/*.cpp)
+WAVEFRONTPARSER_OBJ = $(patsubst src/wavefrontparser/%.cpp,build/wavefrontparser/%.o,$(WAVEFRONTPARSER_SRC))
 
-modelparser: $(MODELPARSER_BLD) $(MODELPARSER_BIN)
+wavefrontparser: $(WAVEFRONTPARSER_BLD) $(WAVEFRONTPARSER_BIN)
 
-$(MODELPARSER_BLD):
+$(WAVEFRONTPARSER_BLD):
 	@mkdir $@
 
-$(MODELPARSER_BIN): $(MODELPARSER_OBJ)
+$(WAVEFRONTPARSER_BIN): $(WAVEFRONTPARSER_OBJ)
 	g++ -g -Wall $(CFLAGS) -o $@ $^
 
-$(MODELPARSER_OBJ): build/modelparser/%.o: src/modelparser/%.cpp
+$(WAVEFRONTPARSER_OBJ): build/wavefrontparser/%.o: src/wavefrontparser/%.cpp
 	g++ -g -Wall $(CFLAGS) -o $@ -c $^
 
 clean:

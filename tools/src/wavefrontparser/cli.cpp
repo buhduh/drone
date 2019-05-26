@@ -1,7 +1,7 @@
 #include <iostream>
 #include <stdexcept>
 
-#include "modelparser/cli.hpp"
+#include "wavefrontparser/cli.hpp"
 #include "cxxopts/cxxopts.hpp"
 
 Args parseCLI(int argc, char* argv[]) {
