@@ -27,6 +27,7 @@ Model::Model(const char* fileName)
 		flags.set(BAD_READ);
 		return;
 	}
+	fclose(inFile);
 	flags.set(MODEL_OK);
 }
 
