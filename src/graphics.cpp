@@ -24,7 +24,7 @@ const std::vector<const char*> Vulkan::deviceExtensions = {
 	VK_KHR_SWAPCHAIN_EXTENSION_NAME
 };
 
-const std::vector<Vertex> Vulkan::vertices = {
+const std::vector<t_Vertex> Vulkan::vertices = {
     {{-0.5f, -0.5f}, {1.0f, 0.0f, 0.0f}},
     {{0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}},
     {{0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}},
@@ -37,7 +37,8 @@ const std::vector<uint16_t> Vulkan::indices = {
 
 const size_t Vulkan::MAX_FRAMES_IN_FLIGHT(2);
 
-Vulkan::Vulkan(GLFWwindow* window) 
+//I don't think initialization lists are good for non constructor args
+Vulkan::Vulkan(GLFWwindow* window, Model* model = nullptr) 
 	: extensions(0) 
 	, frameBufferResized(false)
 	, validationLayers(0)
@@ -71,6 +72,7 @@ Vulkan::Vulkan(GLFWwindow* window)
 	, renderFinishedSemaphores(0)
 	, inFlightFences(0)
 	, currentFrame(0)
+	, model(model)
 {
 	createInstance();
 	createSurface();
@@ -335,7 +337,7 @@ void Vulkan::createCommandBuffers() {
 			pipelineLayout, 0, 1, &descriptorSets[i], 0, nullptr
 		);
 		vkCmdDrawIndexed(
-			commandBuffers[i], static_cast<uint32_t>(indices.size()), 
+			commandBuffers[i], static_cast<uint32_t>(model->indices.size()), 
 			1, 0, 0, 0
 		);
 		vkCmdEndRenderPass(commandBuffers[i]);
@@ -412,7 +414,7 @@ void Vulkan::createUniformBuffers() {
 }
 
 void Vulkan::createIndexBuffer() {
-    VkDeviceSize bufferSize = sizeof(indices[0]) * indices.size();
+    VkDeviceSize bufferSize = sizeof(index_size_t) * model->indices.size();
     VkBuffer stagingBuffer;
     VkDeviceMemory stagingBufferMemory;
     createBuffer(
@@ -422,7 +424,7 @@ void Vulkan::createIndexBuffer() {
 	);
     void* data;
     vkMapMemory(device, stagingBufferMemory, 0, bufferSize, 0, &data);
-    memcpy(data, indices.data(), (size_t) bufferSize);
+    memcpy(data, model->indices.data(), (size_t) bufferSize);
     vkUnmapMemory(device, stagingBufferMemory);
     createBuffer(
 		bufferSize, 
@@ -512,7 +514,7 @@ void Vulkan::copyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize siz
 
 //TODO this is gonna take a lot of work!!!!
 void Vulkan::createVertexBuffer() {
-	VkDeviceSize bufferSize = sizeof(vertices[0]) * vertices.size();
+	VkDeviceSize bufferSize = sizeof(vertex) * model->vertices.size();
 	VkBuffer stagingBuffer;
 	VkDeviceMemory stagingBufferMemory;
 	createBuffer(
@@ -522,7 +524,7 @@ void Vulkan::createVertexBuffer() {
 	);
 	void* data;
 	vkMapMemory(device, stagingBufferMemory, 0, bufferSize, 0, &data);
-	memcpy(data, vertices.data(), (size_t) bufferSize);
+	memcpy(data, model->vertices.data(), (size_t) bufferSize);
 	vkUnmapMemory(device, stagingBufferMemory);
 	createBuffer(
 		bufferSize, 
@@ -618,16 +620,25 @@ void Vulkan::createGraphicsPipeline() {
 		vertShaderStageInfo, fragShaderStageInfo
 	};
 
-	auto bindingDescription = Vertex::getBindingDescription();
-	auto attributeDescriptions = Vertex::getAttributeDescriptions();
+	VkVertexInputBindingDescription bindingDescription = {};
+	bindingDescription.binding = 0;
+	bindingDescription.stride = sizeof(vertex);
+	bindingDescription.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
+
+	VkVertexInputAttributeDescription attributeDescription = {};
+	attributeDescription.binding = 0;
+	attributeDescription.location = 0;
+	attributeDescription.format = VK_FORMAT_R32G32B32_SFLOAT;
+	attributeDescription.offset = 0;
+	//auto bindingDescription = t_Vertex::getBindingDescription();
+	//auto attributeDescriptions = t_Vertex::getAttributeDescriptions();
 
 	VkPipelineVertexInputStateCreateInfo vInputInfo = {};
 	vInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
 	vInputInfo.vertexBindingDescriptionCount = 1;
-	vInputInfo.vertexAttributeDescriptionCount = 
-		static_cast<uint32_t>(attributeDescriptions.size());
+	vInputInfo.vertexAttributeDescriptionCount = 1;
 	vInputInfo.pVertexBindingDescriptions = &bindingDescription;
-	vInputInfo.pVertexAttributeDescriptions = attributeDescriptions.data();
+	vInputInfo.pVertexAttributeDescriptions = &attributeDescription;
 
 	VkPipelineInputAssemblyStateCreateInfo inputAssembly = {};
 	inputAssembly.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
@@ -657,9 +668,11 @@ void Vulkan::createGraphicsPipeline() {
 	rasterizer.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
 	rasterizer.depthClampEnable = VK_FALSE;
 	rasterizer.rasterizerDiscardEnable = VK_FALSE;
-	rasterizer.polygonMode = VK_POLYGON_MODE_FILL;
+	//rasterizer.polygonMode = VK_POLYGON_MODE_FILL;
+	rasterizer.polygonMode = VK_POLYGON_MODE_LINE;
 	rasterizer.lineWidth = 1.0f;
-	rasterizer.cullMode = VK_CULL_MODE_BACK_BIT;
+	//rasterizer.cullMode = VK_CULL_MODE_BACK_BIT;
+	rasterizer.cullMode = VK_CULL_MODE_NONE;
 	rasterizer.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
 	rasterizer.depthBiasEnable = VK_FALSE;
 	rasterizer.depthBiasConstantFactor = 0.0f; // Optional

@@ -3,7 +3,7 @@
 Model::Model(const char* fileName) 
 	: header({0,0})
 	, vertices(0)
-	, indeces(0)
+	, indices(0)
 {
 	FILE* inFile = fopen(fileName, "rb");
 	if(inFile == nullptr) {
@@ -16,14 +16,14 @@ Model::Model(const char* fileName)
 		return;
 	}
 	vertices.resize(header.numVerts);
-	numRead = fread(vertices.data(), sizeof(Vertex), header.numVerts, inFile);
+	numRead = fread(vertices.data(), sizeof(vertex), header.numVerts, inFile);
 	if(numRead != header.numVerts) {
 		flags.set(BAD_READ);
 		return;
 	}
-	indeces.resize(header.numIndeces);
-	numRead = fread(indeces.data(), sizeof(index_size_t), header.numIndeces, inFile);
-	if(numRead != header.numIndeces) {
+	indices.resize(header.numIndices);
+	numRead = fread(indices.data(), sizeof(index_size_t), header.numIndices, inFile);
+	if(numRead != header.numIndices) {
 		flags.set(BAD_READ);
 		return;
 	}

@@ -7,6 +7,7 @@
 
 //project includes
 #include "graphics.hpp"
+#include "model.hpp"
 
 GLFWwindow* initAndMakeWindow() {
 	glfwInit();
@@ -23,7 +24,12 @@ GLFWwindow* initAndMakeWindow() {
 
 int main() {
 	GLFWwindow* window = initAndMakeWindow();
-	Vulkan vk = Vulkan(window);
+	Model model = Model("models/bin/cubetriangles.bin");
+	if(!model.flags.test(MODEL_OK)) {
+		std::cerr << "Failed to load cube model!" << std::endl;
+		exit(EXIT_FAILURE);
+	}
+	Vulkan vk = Vulkan(window, &model);
 	while(!glfwWindowShouldClose(window)) {
 		glfwPollEvents();
 		vk.drawFrame();

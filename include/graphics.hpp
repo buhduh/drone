@@ -15,10 +15,11 @@
 
 //my libraries
 #include "utils/utils.hpp"
+#include "model.hpp"
 
 class Vulkan : utils::Uncopyable {
 	public:
-	Vulkan(GLFWwindow*);
+	Vulkan(GLFWwindow*, Model*);
 	~Vulkan();
 	void drawFrame();
 	void waitIdle();
@@ -26,7 +27,7 @@ class Vulkan : utils::Uncopyable {
 	//static
 	const static bool debug;
 	const static std::vector<const char*> deviceExtensions;
-	const static std::vector<struct Vertex> vertices;
+	const static std::vector<struct t_Vertex> vertices;
 	const static std::vector<uint16_t> indices;
 	const static size_t MAX_FRAMES_IN_FLIGHT;
 
@@ -65,6 +66,7 @@ class Vulkan : utils::Uncopyable {
 	std::vector<VkSemaphore> renderFinishedSemaphores;
 	std::vector<VkFence> inFlightFences;
 	size_t currentFrame;
+	Model* model;
 
 	//VkDebugUtilsMessengerEXT* debugger;
 	VkDebugUtilsMessengerEXT debugger;
@@ -127,13 +129,13 @@ struct SwapChainSupportDetails {
 };
 
 //yuck
-struct Vertex {	
+struct t_Vertex {	
 	glm::vec2 pos;
 	glm::vec3 color;
 	static VkVertexInputBindingDescription getBindingDescription() {
 		VkVertexInputBindingDescription bindingDescription = {};
 		bindingDescription.binding = 0;
-		bindingDescription.stride = sizeof(Vertex);
+		bindingDescription.stride = sizeof(t_Vertex);
 		bindingDescription.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
 		return bindingDescription;
 	}
@@ -142,11 +144,11 @@ struct Vertex {
 		attributeDescriptions[0].binding = 0;
 		attributeDescriptions[0].location = 0;
 		attributeDescriptions[0].format = VK_FORMAT_R32G32_SFLOAT;
-		attributeDescriptions[0].offset = offsetof(Vertex, pos);
+		attributeDescriptions[0].offset = offsetof(t_Vertex, pos);
 		attributeDescriptions[1].binding = 0;
 		attributeDescriptions[1].location = 1;
 		attributeDescriptions[1].format = VK_FORMAT_R32G32B32_SFLOAT;
-		attributeDescriptions[1].offset = offsetof(Vertex, color);
+		attributeDescriptions[1].offset = offsetof(t_Vertex, color);
 		return attributeDescriptions;
 	}
 };
