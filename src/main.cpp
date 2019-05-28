@@ -24,7 +24,7 @@ GLFWwindow* initAndMakeWindow() {
 
 int main() {
 	GLFWwindow* window = initAndMakeWindow();
-	Model model = Model("models/bin/cubetriangles.bin");
+	Model model = Model("assets/models/cubetriangles.bin");
 	if(!model.flags.test(MODEL_OK)) {
 		std::cerr << "Failed to load cube model!" << std::endl;
 		exit(EXIT_FAILURE);

@@ -588,8 +588,8 @@ void Vulkan::createGraphicsPipeline() {
 		throw std::runtime_error("swapChainExtent has not been initialized.");
 	}
 	//TODO gonna have to rethink shaders
-    auto vertShaderCode = utils::readFile("shaders/vert.spv");
-    auto fragShaderCode = utils::readFile("shaders/frag.spv");
+    auto vertShaderCode = utils::readFile("assets/shaders/shader.vert.spv");
+    auto fragShaderCode = utils::readFile("assets/shaders/shader.frag.spv");
 	VkShaderModule vertShaderModule = createShaderModule(vertShaderCode);
 	VkShaderModule fragShaderModule = createShaderModule(fragShaderCode);
 
