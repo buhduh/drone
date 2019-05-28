@@ -13,7 +13,6 @@
 //project includes
 #include "graphics.hpp"
 
-
 #ifdef DEBUG
 const bool Vulkan::debug = true;
 #else

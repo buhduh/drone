@@ -17,6 +17,9 @@ SHADER_TYPES = frag vert
 SHADER_SRC = $(foreach type, $(SHADER_TYPES), $(wildcard shaders/*.$(type)))
 SHADER_SPV = $(patsubst shaders/%, assets/shaders/%.spv, $(SHADER_SRC))
 
+SPIKE_SRC = $(wildcard spike/*.cpp)
+SPIKE_BIN = $(patsubst spike/%.cpp, bin/spike_%, $(SPIKE_SRC))
+
 BUILD_DIRS = $(sort $(dir $(ALL_OBJ) $(WAVEFRONT_BIN) $(SHADER_SPV))) bin 
 
 EXE = bin/drone
@@ -31,8 +34,13 @@ $(SHADER_SPV): assets/shaders/%.spv: shaders/%
 $(EXE): $(ALL_OBJ)
 	g++ -g $(CFLAGS) -o $@ $^ $(LDFLAGS)
 
-build/%.o: src/%.cpp
+$(ALL_OBJ): build/%.o: src/%.cpp
 	g++ -g $(CFLAGS) -o $@ -c $^ $(LDFLAGS)
+
+spike: $(BUILD_DIRS) $(OBJ) $(SPIKE_BIN)
+
+bin/spike_%: spike/%.cpp
+	g++ -g $(CFLAGS) -o $@ $^ $(OBJ) $(LDFLAGS)
 
 $(BUILD_DIRS):
 	@mkdir -p $@
@@ -52,4 +60,4 @@ clean:
 	rm -rf $(BUILD_DIRS)
 	@$(MAKE) -C tools clean
 
-.PHONY: all wavefront shaders
+.PHONY: all wavefront shaders spike
