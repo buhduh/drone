@@ -1,59 +1,55 @@
-#TODO I should probably fix the debugging flags...
-#TODO if tools source changes I need to run the make for the tools
-#AND remake the models binaries
-
 CFLAGS = -std=c++17 -I$(VULKAN_SDK_PATH)/include -Iinclude -I$(HOME)/include -DDEBUG
 LDFLAGS = -L$(VULKAN_SDK_PATH)/lib `pkg-config --static --libs glfw3` -lvulkan
 
-SPIKE_SRC = $(wildcard spike/*.cpp)
-SPIKE_BIN = $(patsubst spike/%.cpp,bin/%_spike,$(SPIKE_SRC))
+#main is a special snowflake, mostly for testing and the main function weirdness
+ALL_SRC = $(shell find src -name "*.cpp")
+SRC = $(filter-out src/main.cpp, $(ALL_SRC))
+ALL_OBJ = $(patsubst src/%.cpp, build/%.o, $(ALL_SRC))
+OBJ = $(patsubst src/%.cpp, build/%.o, $(SRC))
 
-SRC = $(wildcard src/*.cpp)
-OBJ = $(patsubst src/%.cpp,build/%.o,$(SRC))
+WAVEFRONT_SRC = $(wildcard models/wavefront/*.obj)
+WAVEFRONT_BIN = $(patsubst models/wavefront/%.obj, assets/models/%.bin, $(WAVEFRONT_SRC))
+WAVEFRONT_TOOL = tools/bin/wavefrontparser
+WAVEFRONT_BLD = build/wavefrontparser
+WAVEFRONT_PARSER = tools/bin/wavefrontparser
+
+SHADER_TYPES = frag vert
+SHADER_SRC = $(foreach type, $(SHADER_TYPES), $(wildcard shaders/*.$(type)))
+SHADER_SPV = $(patsubst shaders/%, assets/shaders/%.spv, $(SHADER_SRC))
+
+BUILD_DIRS = $(sort $(dir $(ALL_OBJ) $(WAVEFRONT_BIN) $(SHADER_SPV))) bin 
 
 EXE = bin/drone
 
-WAVEFRONT_PARSER = tools/bin/wavefrontparser
+all: $(BUILD_DIRS) $(EXE) $(ALL_OBJ) $(WAVEFRONT_BIN) shaders
 
-MODELS_SRC = $(wildcard models/wavefront/*.obj)
-MODELS = $(patsubst models/wavefront/%.obj,models/bin/%.bin,$(MODELS_SRC))
+shaders: $(BUILD_DIRS) $(SHADER_SPV)	
 
-WAVEFRONTPARSER_SRC = $(wildcard tools/src/wavefrontparser/*.cpp)
+$(SHADER_SPV): assets/shaders/%.spv: shaders/%
+	$(VULKAN_SDK_PATH)/bin/glslangValidator -V -o $@ $^
 
-drone: $(EXE) $(WAVEFRONT_PARSER) $(MODELS)
-
-$(EXE): $(OBJ)
+$(EXE): $(ALL_OBJ)
 	g++ -g $(CFLAGS) -o $@ $^ $(LDFLAGS)
 
-$(OBJ): build/%.o: src/%.cpp
+build/%.o: src/%.cpp
 	g++ -g $(CFLAGS) -o $@ -c $^ $(LDFLAGS)
 
-bin/%_spike: spike/%.cpp
-	g++ $(CFLAGS) -o $@ $^ $(LDFLAGS)
+$(BUILD_DIRS):
+	@mkdir -p $@
 
-$(MODELS): models/bin/%.bin: models/wavefront/%.obj
-	$(WAVEFRONT_PARSER) $^ $@
+wavefront: $(WAVEFRONT_BIN)
 
-wavefrontparser: $(WAVEFRONT_PARSER)
+$(WAVEFRONT_BIN): assets/models/%.bin: models/wavefront/%.obj $(WAVEFRONT_TOOL)
+	$(WAVEFRONT_PARSER) $(filter-out $(WAVEFRONT_TOOL), $^) $@
+	@touch $(WAVEFRONT_BLD)
 
-$(WAVEFRONT_PARSER): $(WAVEFRONTPARSER_SRC)
+$(WAVEFRONT_TOOL): $(WAVEFRONT_BLD)
 	$(MAKE) -C tools wavefrontparser
 
-spike: $(SPIKE_BIN)
-
-#consider loading the tags file in vim
-tags: $(SRC)
-	@gcc -M $(CFLAGS) $^ include/graphics.hpp | \
-	sed -e 's/[\\ ]/\n/g' | \
-	sed -e '/^$$/d' -e '/\.o:[ \t]*$$/d' | \
-	ctags -L - --c++-kinds=+p --fields=+iaS --extra=+q
+$(WAVEFRONT_BLD):
 
 clean:
-	rm -rf build/* bin/*
-	rm -rf models/bin/*
-	$(MAKE) -C tools clean
+	rm -rf $(BUILD_DIRS)
+	@$(MAKE) -C tools clean
 
-clean_spikes:
-	rm -rf bin/*_spike
-
-.PHONY: test clean spike wavefrontparser
+.PHONY: all wavefront shaders
