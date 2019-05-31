@@ -9,6 +9,10 @@
 
 //max number of verts an index can address
 #define INDEX_SIZE_MAX UINT16_MAX
+
+namespace component {
+namespace asset {
+
 typedef uint16_t index_size_t;
 typedef glm::vec3 vertex;
 
@@ -33,5 +37,13 @@ class Model {
 	ModelHeader header;
 };
 
-#endif
+//Do I want to worry about memory?
+static std::vector<char> getSmallFileContents(const std::string& filename) {
+	//return utils::readFile	
+}
 
+
+}
+}
+
+#endif

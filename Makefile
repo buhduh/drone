@@ -20,7 +20,7 @@ SHADER_SPV = $(patsubst shaders/%, assets/shaders/%.spv, $(SHADER_SRC))
 SPIKE_SRC = $(wildcard spike/*.cpp)
 SPIKE_BIN = $(patsubst spike/%.cpp, bin/spike_%, $(SPIKE_SRC))
 
-BUILD_DIRS = $(sort $(dir $(ALL_OBJ) $(WAVEFRONT_BIN) $(SHADER_SPV))) bin 
+BUILD_DIRS = $(sort $(dir $(ALL_OBJ) $(WAVEFRONT_BIN) $(SHADER_SPV)) bin)
 
 EXE = bin/drone
 

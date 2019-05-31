@@ -4,9 +4,9 @@
 namespace memory {
 
 class StackAllocator {
-  public:
-  StackAllocator();
-  ~StackAllocator();
+	public:
+	StackAllocator();
+	~StackAllocator();
 };
 
 }
