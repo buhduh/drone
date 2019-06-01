@@ -7,6 +7,8 @@
 
 #include <glm/glm.hpp>
 
+#include "utils/utils.hpp"
+
 //max number of verts an index can address
 #define INDEX_SIZE_MAX UINT16_MAX
 
@@ -39,7 +41,7 @@ class Model {
 
 //Do I want to worry about memory?
 static std::vector<char> getSmallFileContents(const std::string& filename) {
-	//return utils::readFile	
+	return utils::readFile(filename);
 }
 
 
