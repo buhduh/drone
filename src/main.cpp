@@ -7,7 +7,7 @@
 
 //project includes
 #include "graphics.hpp"
-#include "model.hpp"
+#include "component/model/model.hpp"
 
 GLFWwindow* initAndMakeWindow() {
 	glfwInit();
@@ -24,8 +24,10 @@ GLFWwindow* initAndMakeWindow() {
 
 int main() {
 	GLFWwindow* window = initAndMakeWindow();
-	Model model = Model("assets/models/cubetriangles.bin");
-	if(!model.flags.test(MODEL_OK)) {
+	component::model::MODEL_STATUS mStatus;
+	component::model::Model model = 
+		component::model::Model("assets/models/cubetriangles.bin", mStatus);
+	if(mStatus != component::model::OK) {
 		std::cerr << "Failed to load cube model!" << std::endl;
 		exit(EXIT_FAILURE);
 	}

@@ -26,7 +26,7 @@ const std::vector<const char*> Vulkan::deviceExtensions = {
 const size_t Vulkan::MAX_FRAMES_IN_FLIGHT(2);
 
 //I don't think initialization lists are good for non constructor args
-Vulkan::Vulkan(GLFWwindow* window, Model* model = nullptr) 
+Vulkan::Vulkan(GLFWwindow* window, component::model::Model* model = nullptr) 
 	: extensions(0) 
 	, frameBufferResized(false)
 	, validationLayers(0)
@@ -402,7 +402,9 @@ void Vulkan::createUniformBuffers() {
 }
 
 void Vulkan::createIndexBuffer() {
-    VkDeviceSize bufferSize = sizeof(index_size_t) * model->indices.size();
+    VkDeviceSize bufferSize = 
+		sizeof(component::model::index_size_t) 
+		* model->indices.size();
     VkBuffer stagingBuffer;
     VkDeviceMemory stagingBufferMemory;
     createBuffer(
@@ -502,7 +504,7 @@ void Vulkan::copyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize siz
 
 //TODO this is gonna take a lot of work!!!!
 void Vulkan::createVertexBuffer() {
-	VkDeviceSize bufferSize = sizeof(vertex) * model->vertices.size();
+	VkDeviceSize bufferSize = sizeof(component::model::vertex) * model->vertices.size();
 	VkBuffer stagingBuffer;
 	VkDeviceMemory stagingBufferMemory;
 	createBuffer(
@@ -610,7 +612,7 @@ void Vulkan::createGraphicsPipeline() {
 
 	VkVertexInputBindingDescription bindingDescription = {};
 	bindingDescription.binding = 0;
-	bindingDescription.stride = sizeof(vertex);
+	bindingDescription.stride = sizeof(component::model::vertex);
 	bindingDescription.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
 
 	VkVertexInputAttributeDescription attributeDescription = {};

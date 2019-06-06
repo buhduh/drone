@@ -15,11 +15,11 @@
 
 //my libraries
 #include "utils/utils.hpp"
-#include "model.hpp"
+#include "component/model/model.hpp"
 
 class Vulkan : utils::Uncopyable {
 	public:
-	Vulkan(GLFWwindow*, Model*);
+	Vulkan(GLFWwindow*, component::model::Model*);
 	~Vulkan();
 	void drawFrame();
 	void waitIdle();
@@ -66,7 +66,7 @@ class Vulkan : utils::Uncopyable {
 	std::vector<VkSemaphore> renderFinishedSemaphores;
 	std::vector<VkFence> inFlightFences;
 	size_t currentFrame;
-	Model* model;
+	component::model::Model* model;
 
 	//VkDebugUtilsMessengerEXT* debugger;
 	VkDebugUtilsMessengerEXT debugger;

@@ -10,7 +10,7 @@
 #include <regex>
 
 #include "wavefrontparser/cli.hpp"
-#include "model.hpp"
+#include "component/model/model.hpp"
 
 const static int CHUNK_SIZE = 1024;
 
@@ -33,7 +33,7 @@ int main(int argc, char* argv[]) {
 		exit(EXIT_FAILURE);
 	}
 	std::string line;
-	index_size_t vertCount = 0;
+	component::model::index_size_t vertCount = 0;
 	uint32_t indexCount = 0;
 	uint32_t lineN = 1;
 	std::regex vertPat(R"(v (-?\d+\.\d+) (-?\d+\.\d+) (-?\d+\.\d+)$)");
@@ -41,9 +41,12 @@ int main(int argc, char* argv[]) {
 	std::cmatch match;
 	size_t vertBufferSize = CHUNK_SIZE;
 	size_t indexBufferSize = CHUNK_SIZE;
-	vertex* vertBuffer = (vertex*) malloc(sizeof(vertex)*vertBufferSize);
-	index_size_t* indexBuffer = (index_size_t*) malloc(sizeof(index_size_t)*indexBufferSize);
-		(index_size_t*) malloc(sizeof(index_size_t)*indexBufferSize);
+	component::model::vertex* vertBuffer = 
+		(component::model::vertex*) 
+		malloc(sizeof(component::model::vertex)*vertBufferSize);
+	component::model::index_size_t* indexBuffer = 
+		(component::model::index_size_t*) 
+		malloc(sizeof(component::model::index_size_t)*indexBufferSize);
 	for(; std::getline(inFile, line); lineN++) {
 		if(line.empty()) continue;
 		TYPE type;
@@ -64,15 +67,17 @@ int main(int argc, char* argv[]) {
 				//*= 2 could really blow this thing up for large v numbers.
 				if(vertCount == vertBufferSize) {
 					vertBufferSize *= 2;		
-					vertBuffer = (vertex*) realloc(vertBuffer, sizeof(vertex)*vertBufferSize);
+					vertBuffer = 
+						(component::model::vertex*) 
+						realloc(vertBuffer, sizeof(component::model::vertex)*vertBufferSize);
 				}
-				vertBuffer[vertCount++] = vertex{
+				vertBuffer[vertCount++] = component::model::vertex{
 					atof(match.str(1).c_str()),
 					atof(match.str(2).c_str()),
 					atof(match.str(3).c_str())
 				};
 				//index reference type can no longer reference vertices
-				if(vertCount >=  INDEX_SIZE_MAX) {
+				if(vertCount >=  component::model::INDEX_SIZE_MAX) {
 					std::cerr << "Too many vertices for index type to handle!" << std::endl;
 					exit(EXIT_FAILURE);
 				}
@@ -90,15 +95,17 @@ int main(int argc, char* argv[]) {
 				//topologies?
 				if(indexCount + 3 > indexBufferSize) {
 					indexBufferSize *= 2;
-					indexBuffer = (index_size_t*) realloc(indexBuffer, sizeof(index_size_t)*indexBufferSize);
+					indexBuffer = 
+						(component::model::index_size_t*) 
+						realloc(indexBuffer, sizeof(component::model::index_size_t)*indexBufferSize);
 				}
-				indexBuffer[indexCount++] = static_cast<index_size_t>((
+				indexBuffer[indexCount++] = static_cast<component::model::index_size_t>((
 					atoi(match.str(1).c_str()) - 1)
 				);
-				indexBuffer[indexCount++] = static_cast<index_size_t>((
+				indexBuffer[indexCount++] = static_cast<component::model::index_size_t>((
 					atoi(match.str(2).c_str()) - 1)
 				);
-				indexBuffer[indexCount++] = static_cast<index_size_t>((
+				indexBuffer[indexCount++] = static_cast<component::model::index_size_t>((
 					atoi(match.str(3).c_str()) - 1)
 				);
 				break;
@@ -112,10 +119,10 @@ int main(int argc, char* argv[]) {
 		std::cerr << "Failed opening '" << args.output << "' for writing, stopping." << std::endl;
 		exit(EXIT_FAILURE);
 	}
-	ModelHeader mHeader = {vertCount, indexCount};
-	fwrite(&mHeader, sizeof(ModelHeader), 1, oFile);
-	fwrite(vertBuffer, sizeof(vertex), vertCount, oFile);
-	fwrite(indexBuffer, sizeof(index_size_t), indexCount, oFile);
+	component::model::ModelHeader mHeader = {vertCount, indexCount};
+	fwrite(&mHeader, sizeof(component::model::ModelHeader), 1, oFile);
+	fwrite(vertBuffer, sizeof(component::model::vertex), vertCount, oFile);
+	fwrite(indexBuffer, sizeof(component::model::index_size_t), indexCount, oFile);
 	fclose(oFile);
 	free(vertBuffer);
 	free(indexBuffer);
