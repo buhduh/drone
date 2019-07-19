@@ -1,0 +1,13 @@
+Coding standards.
+
+Subject to change as I settle on conventions.
+
+1.  Indention is 4 spaces.
+2.  File names are snake_cased.
+3.  Classes and structs are capitalized and CamelCased.
+4.	Variables are lower and camelCased.
+5.  Constants are CAPITALIZED.
+6.  typedefs match the casing of what they typedef
+7.  header gaurds follow path/to/file.hpp -> PATH_TO_FILE_HPP convention
+8.  ALL source files are namespaced following path/to/file.cpp namespace path { namespace to { } } convention.
+9.  Lines are <= 80 characters, barring jumping through too many hoops to do.
